@@ -1,0 +1,337 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>机器学习基础(一)线性回归与逻辑回归 | sherlockyang's blog</title><meta name="description" content="本文为吴恩达机器学习课程的笔记系列第一篇，主要关于线性回归与逻辑回归的详细推导，以及介绍两者之间的区别。"><meta name="keywords" content="线性回归,逻辑回归"><meta name="author" content="sherlockyang"><meta name="copyright" content="sherlockyang"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta http-equiv="Cache-Control" content="no-transform"><meta http-equiv="Cache-Control" content="no-siteapp"><link rel="shortcut icon" href="/img/myfavicon.png"><link rel="canonical" href="http://example.com/2020/08/31/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E5%9F%BA%E7%A1%80(%E4%B8%80)%E7%BA%BF%E6%80%A7%E5%9B%9E%E5%BD%92%E4%B8%8E%E9%80%BB%E8%BE%91%E5%9B%9E%E5%BD%92/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><meta property="og:type" content="article"><meta property="og:title" content="机器学习基础(一)线性回归与逻辑回归"><meta property="og:url" content="http://example.com/2020/08/31/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E5%9F%BA%E7%A1%80(%E4%B8%80)%E7%BA%BF%E6%80%A7%E5%9B%9E%E5%BD%92%E4%B8%8E%E9%80%BB%E8%BE%91%E5%9B%9E%E5%BD%92/"><meta property="og:site_name" content="sherlockyang's blog"><meta property="og:description" content="本文为吴恩达机器学习课程的笔记系列第一篇，主要关于线性回归与逻辑回归的详细推导，以及介绍两者之间的区别。"><meta property="og:image" content="http://example.com/img/avatar.jpg"><meta property="article:published_time" content="2020-08-31T10:26:31.000Z"><meta property="article:modified_time" content="2020-09-03T12:06:22.077Z"><meta name="twitter:card" content="summary"><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>var GLOBAL_CONFIG = { 
+  root: '/',
+  hexoversion: '5.1.1',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  bookmark: {
+    message_prev: '按',
+    message_next: '键将本页加入书签'
+  },
+  runtime: '天',
+  date_suffix: {"one_hour":"刚刚","hours":"小时前","day":"天前"},
+  copyright: {"limitCount":50,"languages":{"author":"作者: sherlockyang","link":"链接: ","source":"来源: sherlockyang's blog","info":"著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。"}},
+  ClickShowText: undefined,
+  medium_zoom: true,
+  fancybox: false,
+  Snackbar: undefined,
+  justifiedGallery: {
+    js: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/js/jquery.justifiedGallery.min.js',
+    css: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/css/justifiedGallery.min.css'
+  },
+  baiduPush: false,
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isanchor: false
+};
+
+var saveToLocal = {
+  set: function setWithExpiry(key, value, ttl) {
+      const now = new Date()
+      const expiryDay = ttl * 86400000
+      const item = {
+        value: value,
+        expiry: now.getTime() + expiryDay,
+      }
+      localStorage.setItem(key, JSON.stringify(item))
+    },
+  
+  get: function getWithExpiry(key) {
+    const itemStr = localStorage.getItem(key)
+
+    if (!itemStr) {
+      return undefined
+    }
+    const item = JSON.parse(itemStr)
+    const now = new Date()
+
+    if (now.getTime() > item.expiry) {
+      localStorage.removeItem(key)
+      return undefined
+    }
+    return item.value
+  }
+}</script><script id="config_change">var GLOBAL_CONFIG_SITE = { 
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isSidebar: true,
+  postUpdate: '2020-09-03 20:06:22'
+}</script><noscript><style type="text/css">
+#nav {
+  opacity: 1
+}
+.justified-gallery img {
+  opacity: 1
+}
+</style></noscript><script>var activateDarkMode = function () {
+  document.documentElement.setAttribute('data-theme', 'dark')
+  if (document.querySelector('meta[name="theme-color"]') !== null) {
+    document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+  }
+}
+var activateLightMode = function () {
+  document.documentElement.setAttribute('data-theme', 'light')
+  if (document.querySelector('meta[name="theme-color"]') !== null) {
+    document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+  }
+}
+
+var autoChangeMode = 'false'
+var t = saveToLocal.get('theme')
+if (autoChangeMode === '1') {
+  var isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
+  var isLightMode = window.matchMedia('(prefers-color-scheme: light)').matches
+  var isNotSpecified = window.matchMedia('(prefers-color-scheme: no-preference)').matches
+  var hasNoSupport = !isDarkMode && !isLightMode && !isNotSpecified
+
+  if (t === undefined) {
+    if (isLightMode) activateLightMode()
+    else if (isDarkMode) activateDarkMode()
+    else if (isNotSpecified || hasNoSupport) {
+      var now = new Date()
+      var hour = now.getHours()
+      var isNight = hour <= 6 || hour >= 18
+      isNight ? activateDarkMode() : activateLightMode()
+    }
+    window.matchMedia('(prefers-color-scheme: dark)').addListener(function (e) {
+      if (saveToLocal.get('theme') === undefined) {
+        e.matches ? activateDarkMode() : activateLightMode()
+      }
+    })
+  } else if (t === 'light') activateLightMode()
+  else activateDarkMode()
+} else if (autoChangeMode === '2') {
+  now = new Date()
+  hour = now.getHours()
+  isNight = hour <= 6 || hour >= 18
+  if (t === undefined) isNight ? activateDarkMode() : activateLightMode()
+  else if (t === 'light') activateLightMode()
+  else activateDarkMode()
+} else {
+  if (t === 'dark') activateDarkMode()
+  else if (t === 'light') activateLightMode()
+}</script><meta name="generator" content="Hexo 5.1.1"></head><body><div id="mobile-sidebar"><div id="menu_mask"></div><div id="mobile-sidebar-menus"><div class="mobile_author_icon"><img class="avatar-img" src="/img/avatar.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="mobile_post_data"><div class="mobile_data_item is-center"><div class="mobile_data_link"><a href="/archives/"><div class="headline">文章</div><div class="length_num">14</div></a></div></div><div class="mobile_data_item is-center">      <div class="mobile_data_link"><a href="/tags/"><div class="headline">标签</div><div class="length_num">13</div></a></div></div><div class="mobile_data_item is-center">     <div class="mobile_data_link"><a href="/categories/"><div class="headline">分类</div><div class="length_num">5</div></a></div></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友情链接</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div id="body-wrap"><div id="sidebar"><i class="fas fa-arrow-right on" id="toggle-sidebar"></i><div class="sidebar-toc"><div class="sidebar-toc__title">目录</div><div class="sidebar-toc__progress"><span class="progress-notice">你已经读了</span><span class="progress-num">0</span><span class="progress-percentage">%</span><div class="sidebar-toc__progress-bar">     </div></div><div class="sidebar-toc__content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%BA%BF%E6%80%A7%E5%9B%9E%E5%BD%92-LinearRegression"><span class="toc-number">1.</span> <span class="toc-text">线性回归 LinearRegression</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%95%E5%85%83%E7%BA%BF%E6%80%A7%E5%9B%9E%E5%BD%92"><span class="toc-number">1.1.</span> <span class="toc-text">单元线性回归</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BB%A3%E4%BB%B7%E5%87%BD%E6%95%B0-cost-function"><span class="toc-number">1.1.1.</span> <span class="toc-text">代价函数 cost function</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A2%AF%E5%BA%A6%E4%B8%8B%E9%99%8D-gradient-descent"><span class="toc-number">1.1.2.</span> <span class="toc-text">梯度下降 gradient descent</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A2%AF%E5%BA%A6%E4%B8%8B%E9%99%8D%E7%9A%84%E7%BA%BF%E6%80%A7%E5%9B%9E%E5%BD%92"><span class="toc-number">1.1.3.</span> <span class="toc-text">梯度下降的线性回归</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%A4%9A%E5%85%83%E7%BA%BF%E6%80%A7%E5%9B%9E%E5%BD%92"><span class="toc-number">1.2.</span> <span class="toc-text">多元线性回归</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A2%AF%E5%BA%A6%E4%B8%8B%E9%99%8D"><span class="toc-number">1.2.1.</span> <span class="toc-text">梯度下降</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%AD%A3%E8%A7%84%E6%96%B9%E7%A8%8B"><span class="toc-number">1.2.2.</span> <span class="toc-text">正规方程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A2%AF%E5%BA%A6%E4%B8%8B%E9%99%8D%E4%B8%8E%E6%AD%A3%E8%A7%84%E6%96%B9%E7%A8%8B%E7%9A%84%E6%AF%94%E8%BE%83"><span class="toc-number">1.2.3.</span> <span class="toc-text">梯度下降与正规方程的比较</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E9%80%BB%E8%BE%91%E5%9B%9E%E5%BD%92-Logistic-Regression"><span class="toc-number">2.</span> <span class="toc-text">逻辑回归 Logistic Regression</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%86%B3%E7%AD%96%E8%BE%B9%E7%95%8C"><span class="toc-number">2.1.</span> <span class="toc-text">决策边界</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BB%A3%E4%BB%B7%E5%87%BD%E6%95%B0"><span class="toc-number">2.2.</span> <span class="toc-text">代价函数</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BD%BF%E7%94%A8%E6%A2%AF%E5%BA%A6%E4%B8%8B%E9%99%8D"><span class="toc-number">2.3.</span> <span class="toc-text">使用梯度下降</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%A4%9A%E5%88%86%E7%B1%BB%E9%97%AE%E9%A2%98"><span class="toc-number">2.4.</span> <span class="toc-text">多分类问题</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%BF%87%E6%8B%9F%E5%90%88%E4%B8%8E%E6%AC%A0%E6%8B%9F%E5%90%88"><span class="toc-number">2.5.</span> <span class="toc-text">过拟合与欠拟合</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%AD%A3%E5%88%99%E5%8C%96"><span class="toc-number">2.6.</span> <span class="toc-text">正则化</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%BA%BF%E6%80%A7%E5%9B%9E%E5%BD%92%E4%B8%AD%E7%9A%84%E6%AD%A3%E5%88%99%E5%8C%96"><span class="toc-number">2.6.1.</span> <span class="toc-text">线性回归中的正则化</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%80%BB%E8%BE%91%E5%9B%9E%E5%BD%92%E4%B8%AD%E7%9A%84%E6%AD%A3%E5%88%99%E5%8C%96"><span class="toc-number">2.6.2.</span> <span class="toc-text">逻辑回归中的正则化</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%BA%BF%E6%80%A7%E5%9B%9E%E5%BD%92%E4%B8%8E%E9%80%BB%E8%BE%91%E5%9B%9E%E5%BD%92%E7%9A%84%E5%8C%BA%E5%88%AB"><span class="toc-number">3.</span> <span class="toc-text">线性回归与逻辑回归的区别</span></a></li></ol></div></div></div><header class="post-bg" id="page-header"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">sherlockyang's blog</a></span><span id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友情链接</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><span class="close" id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></span></span></nav><div id="post-info"><div id="post-title"><div class="posttitle">机器学习基础(一)线性回归与逻辑回归</div></div><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2020-08-31T10:26:31.000Z" title="发表于 2020-08-31 18:26:31">2020-08-31</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2020-09-03T12:06:22.077Z" title="更新于 2020-09-03 20:06:22">2020-09-03</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/">机器学习</a></span></div><div class="meta-secondline"> <span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">3.3k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>12分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"></span></span></div></div></div></header><main class="layout_post" id="content-inner"><article id="post"><div class="post-content" id="article-container"><blockquote>
+<p>前言 </p>
+<p>本文为吴恩达机器学习课程的笔记系列第一篇，主要关于线性回归与逻辑回归的详细推导，以及介绍两者之间的区别。</p>
+</blockquote>
+<h1 id="线性回归-LinearRegression"><a href="#线性回归-LinearRegression" class="headerlink" title="线性回归 LinearRegression"></a>线性回归 LinearRegression</h1><h2 id="单元线性回归"><a href="#单元线性回归" class="headerlink" title="单元线性回归"></a>单元线性回归</h2><p>属于回归问题</p>
+<h3 id="代价函数-cost-function"><a href="#代价函数-cost-function" class="headerlink" title="代价函数 cost function"></a>代价函数 cost function</h3><p>线性平方代价函数：</p>
+<script type="math/tex; mode=display">h_{\theta}(x)=\theta_0+\theta_1x</script><p>建模误差平方和：</p>
+<script type="math/tex; mode=display">J(\theta_0,\theta_1)=\dfrac{1}{2m}\sum\limits_{i=1}^m (h_{\theta}(x^{(i)})-y^{(i)})^2</script><p>几个概念：</p>
+<ul>
+<li><p>误差平方和(Sum of the Squared Errors,即SSE)：用来表明函数拟合的好坏</p>
+</li>
+<li><p>均方误差(MSE)：，指参数估计值与参数真值之差的平方的期望值。</p>
+</li>
+</ul>
+<h3 id="梯度下降-gradient-descent"><a href="#梯度下降-gradient-descent" class="headerlink" title="梯度下降 gradient descent"></a>梯度下降 gradient descent</h3><p>基于经典的下山问题，即当你在山上的某一点时，因如何在山上选择最佳的下山方向，以及每一步因走多大。梯度下降目的是用来求代价函数最小值。</p>
+<p>算法思想：</p>
+<ul>
+<li>初始选择一个参数组合，计算代价函数</li>
+<li>接着寻找得使得代价函数值下降最多的参数组合，并同样计算代价函数</li>
+<li>持续上述过程，直至目标值为局部最小值</li>
+</ul>
+<p><strong>批量梯度下降(batch gradient descent)</strong></p>
+<p>公式(假设两个参数)：$ \theta_j = \theta_j - \alpha\dfrac{\partial}{\partial\theta_j}J(\theta_0,\theta_j)  $</p>
+<ul>
+<li><script type="math/tex">\alpha</script> 为学习率(learing rate)，它决定了我们沿着能让代价函数下降程度最大的方向向下迈出的步子有多大，在批量梯度下降中，我们每一次都同时让所有的参数减去学习速率乘以代价函数的导数。 </li>
+<li>对于多个<script type="math/tex">\theta</script> ，必须同步更新值，学习率也是会更新的，因为越接近极值点，我们的学习率也就是下山的步长应该越小，这样的结果才越准确。实际上就是要偏导数为0，使之收敛于局部最优解。</li>
+</ul>
+<p>如何选择 $\alpha$ 值？</p>
+<ul>
+<li>基于上式，我们可以看到若 $\alpha$ 太小，每一次的步伐非常小，一点一点移动接近最低点，这样一次迭代花费时间会很久。</li>
+<li>若 $\alpha$ 太大，那么移动步伐过大，可能会越过最低点，下一次迭代移动又再越一次，一次次越过最低点，这样就会导致无法收敛。</li>
+<li>一般实际应用中，选择一组区间如 $[0.01,0.1,1,10]$ 这样去多次尝试，再根据结果进一步更选择合适的区间。</li>
+</ul>
+<p>在梯度下降法中，当我们接近局部最低点时，梯度下降法会自动采取更小的幅度，这是因为当我们接近局部最低点时，很显然在局部最低时导数等于零，所以当我们接近局部最低时，导数值会自动变得越来越小，所以梯度下降将自动采取较小的幅度，也就是 $\alpha$ 没必要在此时另外减小了。</p>
+<h3 id="梯度下降的线性回归"><a href="#梯度下降的线性回归" class="headerlink" title="梯度下降的线性回归"></a>梯度下降的线性回归</h3><p>梯度下降算法：</p>
+<script type="math/tex; mode=display">\begin{align}&Repeat\;until\;convergence\{ \\ & \quad\theta_j=\theta_j-\alpha\dfrac{\partial}{\partial\theta_0}J(\theta_0,\theta_1) \\ & \quad for\;j=0\;and\;1\\ &\}\end{align}</script><p>对代价函数求导：</p>
+<script type="math/tex; mode=display">\dfrac{\partial}{\partial\theta_j}J(\theta_0,\theta_1)=\dfrac{\partial}{\partial\theta_j}\frac{1}{2m}\sum\limits_{i=1}^m(h_{\theta}(x^{(i)})-y^{(i)})^2</script><script type="math/tex; mode=display">j=0,\quad\dfrac{\partial}{\partial\theta_0}J(\theta_0,\theta_1)=\frac{1}{m}\sum\limits_{i=1}^m (h_{\theta}(x^{(i)})-y^{(i)}),\quad\theta_0=\theta_0-\alpha\frac{1}{m}\sum\limits_{i=1}^m (h_{\theta}(x^{(i)})-y^{(i)})</script><script type="math/tex; mode=display">j=1,\quad\dfrac{\partial}{\partial\theta_1}J(\theta_0,\theta_1)=\frac{1}{m}\sum\limits_{i=1}^m (h_{\theta}(x^{(i)})-y^{(i)})\cdot x^{(i)},\quad\theta_1=\theta_1-\alpha\frac{1}{m}\sum\limits_{i=1}^m (h_{\theta}(x^{(i)})-y^{(i)})\cdot x^{(i)}</script><p>我们也可以利用<strong>“最小二乘法”</strong>来对模型求解。在线性回归中，最小二乘法就是试图找到一条直线，是所有样本到直线上的欧式距离之和最小，也就是模型中的$J(\theta_0,\theta_1)$ 最小。</p>
+<p>解法：分别对 $\theta_0,\theta_1$ 求导并令所求式子为0，从而解出$\theta_0,\theta_1$ 最优解。</p>
+<h2 id="多元线性回归"><a href="#多元线性回归" class="headerlink" title="多元线性回归"></a>多元线性回归</h2><p>其实就是 单特征=&gt;多维特征，用向量表示</p>
+<p>假设特征数量为 $n$ ，特征矩阵如下：</p>
+<script type="math/tex; mode=display">X=\begin{matrix}\\\\x^{(1)}:\\x^{(2)}:\\x^{(3)}:\\...\end{matrix}\begin{matrix}\\\text{特征}1&\text{特征}2&\text{特征}3&\text{特征}4\\1&0.2&41&6\\2&0.6&35&4\\5&0.5&60&8\\...&...&...&...\end{matrix}=\begin{bmatrix}x^{(1)^T}\\x^{(2)^T}\\x^{(3)^T}\\...\\x^{(n)^T}\\\end{bmatrix}</script><p>$x^{(i)}$代表第 $i$ 个特征实例，也就是特征矩阵的第 $i$ 行，是一个向量，如 $x^{(2)}=\begin{bmatrix}2\newline0.6\newline35\newline4\end{bmatrix}$ </p>
+<p>多变量的 $h$ 表示为：</p>
+<script type="math/tex; mode=display">h_{\theta}(x)=\theta_0+\theta_1x+\theta_2x_2+...+\theta_nx_n</script><p>可以看出，参数为一个 $n+1$ 维的向量，特征矩阵的维度为 $m*(n+1)$，为了计算方便，我们引入 $x_0=1$,即公式变为：</p>
+<script type="math/tex; mode=display">h_{\theta}(x)=\theta_0x_0+\theta_1x_1+\theta_2x_2+...+\theta_nx_n</script><p>令 $\theta = \begin{bmatrix}\theta_0\newline\theta_1\newline…\newline\theta_n\end{bmatrix}$ </p>
+<p>故进一步简化：$h_{\theta}(x)=\theta^Tx$ </p>
+<h3 id="梯度下降"><a href="#梯度下降" class="headerlink" title="梯度下降"></a>梯度下降</h3><p>在单元线性回归的梯度下降基础上拓展，</p>
+<script type="math/tex; mode=display">\dfrac{\partial}{\partial\theta_j}J(\theta_j)=\dfrac{\partial}{\partial\theta_j}\frac{1}{2m}\sum\limits_{i=1}^m (h_{\theta}(x^{(i)})-y^{(i)})^2</script><p>特征缩放：放缩每个特征，大约至 $[-1,1]$</p>
+<p>均值归一化(Mean normalization)：就是标准化</p>
+<ul>
+<li>$x_i = \dfrac{x_i-\mu_i}{max-min}$</li>
+<li>$i&gt;1,\text{因为}x_0=1$</li>
+</ul>
+<h3 id="正规方程"><a href="#正规方程" class="headerlink" title="正规方程"></a>正规方程</h3><p>假设训练集结果为向量 $y$ ，引入$x_0$ 后，特征矩阵也可写为：</p>
+<script type="math/tex; mode=display">X=\begin{matrix}\\\text{特征}1&\text{特征}2&\text{特征}3&\text{特征}4\\1&0.2&41&6\\2&0.6&35&4\\5&0.5&60&8\\...&...&...&...\end{matrix}=\begin{matrix}\\\\1&x^{(1)^T}\\1&x^{(2)^T}\\1&x^{(3)^T}\\1&...\end{matrix}</script><p>将上述的代价函数写作矩阵形式：</p>
+<script type="math/tex; mode=display">J(\theta)=\frac{1}{2m}(X\theta-y)^T(X\theta-y)</script><p>实际上就是求解使得 $J(\theta)$ 最小的 参数 $\theta$ 值，即如下表示：</p>
+<script type="math/tex; mode=display">\theta = argmin(X\theta-y)^T(X\theta-y)</script><p>令 $E_{\theta}=(X\theta-y)^T(X\theta-y)$ ，对 $\theta$ 求导可解得：</p>
+<script type="math/tex; mode=display">\theta = (X^TX)^{-1}X^Ty</script><h3 id="梯度下降与正规方程的比较"><a href="#梯度下降与正规方程的比较" class="headerlink" title="梯度下降与正规方程的比较"></a>梯度下降与正规方程的比较</h3><div class="table-container">
+<table>
+<thead>
+<tr>
+<th style="text-align:left">梯度下降</th>
+<th style="text-align:left">正规方程</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">需要选择学习率 $\alpha$</td>
+<td style="text-align:left">不需要学习率 $\alpha$</td>
+</tr>
+<tr>
+<td style="text-align:left">需要进行多步迭代</td>
+<td style="text-align:left">不需要进行迭代，矩阵运算仅需一行代码就可完成</td>
+</tr>
+<tr>
+<td style="text-align:left">多特征下，适应性较好</td>
+<td style="text-align:left">矩阵逆的计算复杂度为 O($n^3$)，所以如果特征维度太高(特别是超过 10000 维)，运算代价大，不宜再考虑该方法</td>
+</tr>
+<tr>
+<td style="text-align:left">能应用到一些更加复杂的算法中，适用于各种类型的模型</td>
+<td style="text-align:left">矩阵需要可逆，并且，对于一些更复杂的算法，该方法无法工作。只适用于线性回归模型，不适合逻辑回归模型等其他模型</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h1 id="逻辑回归-Logistic-Regression"><a href="#逻辑回归-Logistic-Regression" class="headerlink" title="逻辑回归 Logistic Regression"></a>逻辑回归 Logistic Regression</h1><p>属于分类问题。对于分类问题，数据一般是离散的，应用线性回归的方法处理分类问题并不是一个很好的方法，所以下面介绍一种处理分类问题的经典算法——逻辑回归。</p>
+<p>逻辑回归的本质是：假设数据服从这个分布，然后使用极大似然估计做参数的估计，使得输出的变量范围始终在0和1之间。下面以二分类问题为例介绍该算法。</p>
+<p>逻辑回归的分布函数采用的是 $Sigmoid$ 函数： $g(z)=\dfrac{1}{1+e^{-z}}$ ，该函数图像如下：</p>
+<p><img src="/img/Sigmoid函数图像.jpg" alt="Sigmoid函数图像.jpg"></p>
+<p>可以看出该函数将输入数值转换至概率值，所以我们借此可构造逻辑回归模型的假设函数是：</p>
+<script type="math/tex; mode=display">h_{\theta}(x)=g(\theta^{T}x)=\dfrac{1}{1+e^{-\theta^{T}x}}</script><p>其中： $x$ 代表特征向量，$\theta$ 为我们要求取的参数。</p>
+<script type="math/tex; mode=display">P(y=1|x;\theta)=h_{\theta}(x)</script><p>即表示给定 $x$ 和 $\theta$ 的条件下，预测 $y=1$ 的概率</p>
+<p>可以得到决策函数：</p>
+<script type="math/tex; mode=display">y(i)=1, \text{if }P(y=1|x)>0.5</script><p>$0.5$ 就是我们选择的阈值，当然可以根据实际情况选择其它数值，比如对正例的预测性高一点，就可以大于0.5</p>
+<h2 id="决策边界"><a href="#决策边界" class="headerlink" title="决策边界"></a>决策边界</h2><p>这个概念的介绍引用吴恩达教授的课程ppt</p>
+<p>线性决策边界</p>
+<p><img src="/img/线性决策边界.png" alt="线性决策边界.png"></p>
+<p>非线性边界</p>
+<p><img src="/img/非线性决策边界.png" alt="非线性决策边界.png"></p>
+<h2 id="代价函数"><a href="#代价函数" class="headerlink" title="代价函数"></a>代价函数</h2><p>定义逻辑回归的代价函数为：</p>
+<script type="math/tex; mode=display">J(\theta)=\frac{1}{m}\sum\limits_{i=1}^m Cost(h_{\theta}(x^{(i)})-y^{(i)})</script><p>其中:</p>
+<script type="math/tex; mode=display">Cost(h_{\theta}(x),y)=\begin{cases}-log(h_{\theta}(x))&y=1\text{时} \\-log(1-h_{\theta}(x))&y=0\text{时}\end{cases}</script><p> $Cost(h_{\theta}(x),y)$ 函数的特点是：</p>
+<ul>
+<li>当实际的 $y=1$ 时， <script type="math/tex">h_{\theta}(x)=1</script> 时代价为 0，当 <script type="math/tex">h_{\theta}(x)</script> 不为 $1$ 时，代价随着 <script type="math/tex">h_{\theta}(x)</script> 变小而变大；</li>
+<li>当实际的 $y=0$ 时， <script type="math/tex">h_{\theta}(x)=0</script> 时代价为 0，当 <script type="math/tex">h_{\theta}(x)</script> 不为 $0$ 时，代价随着 <script type="math/tex">h_{\theta}(x)</script> 变大而变大；</li>
+</ul>
+<p>图像如下：</p>
+<p><img src="/img/代价函数与y.png" alt="代价函数与y"></p>
+<p>可进一步化简：</p>
+<script type="math/tex; mode=display">J(\theta)=-\frac{1}{m}\sum\limits_{i=1}^m [y^{(i)}log(h_{\theta}(x))+(1-y^{(i)})log(1-h_{\theta}(x))]</script><h2 id="使用梯度下降"><a href="#使用梯度下降" class="headerlink" title="使用梯度下降"></a>使用梯度下降</h2><p>对代价函数 $J(\theta)$ 求导，可得</p>
+<script type="math/tex; mode=display">\dfrac{\partial}{\partial\theta}J(\theta)=\frac{1}{m}\sum\limits_{i=1}^m (h_{\theta}(x^{(i)})-y^{(i)})x^{(i)}</script><p>同样对 <script type="math/tex">\theta_j=\theta_j-\alpha\frac{1}{m}\sum\limits_{i=1}^m (h_{\theta}(x^{(i)})-y^{(i)})</script> 不停更新每个参数值，直至求出使函数值最小化，也就是导数值趋于$0$的 $\theta$ 即可。 </p>
+<h2 id="多分类问题"><a href="#多分类问题" class="headerlink" title="多分类问题"></a>多分类问题</h2><p>通常采用 <strong>One-vs-All</strong>，亦称 <strong>One-vs-the Rest</strong> 方法来实现多分类，其将<strong>多分类问题</strong>转化为了<strong>多次二分类</strong>问题。其实就是轮流把某一特征视为正样本，其余统统视为负样本，然后同二分类一样进行模型训练。若样本特征数为 $n$ ，总共会获得 $n-1$ 个决策边界。</p>
+<p>例：给定输入 $x$，分别计算 <script type="math/tex">h_{\theta}^{(i)}(x),i=1,2,...,n</script> ，然后进行比较，若<script type="math/tex">h_{\theta}^{(k)}(x)</script> 最接近$1$ ，则预测 $x$ 属于 $k$ 类。</p>
+<h2 id="过拟合与欠拟合"><a href="#过拟合与欠拟合" class="headerlink" title="过拟合与欠拟合"></a>过拟合与欠拟合</h2><p>什么是过拟合？</p>
+<p><strong>欠拟合(underfitting)</strong>：拟合程度不高，数据距离拟合曲线较远</p>
+<p><strong>过拟合(overfitting)</strong>：过度拟合，貌似拟合几乎每一个数据，但是丢失了信息规律。在机器学习中，经常出现训练集拟合程度过高，过于精确，这样的模型并无实际预测意义。</p>
+<h2 id="正则化"><a href="#正则化" class="headerlink" title="正则化"></a>正则化</h2><p>上述提到了存在的过拟合问题，那么解决过拟合的方法一般有：</p>
+<ul>
+<li>减少特征数。这样显然会破坏特征的完整性。</li>
+<li>保留特征，但是弱化一些高阶项的系数 $\theta_i$ 。我们把这种弱化称之为对参数 $\theta_i$ 的惩罚。</li>
+</ul>
+<p>所谓正则化，就是弱化高阶特征的过程。</p>
+<h3 id="线性回归中的正则化"><a href="#线性回归中的正则化" class="headerlink" title="线性回归中的正则化"></a>线性回归中的正则化</h3><p>在线性回归的基础上，我们引入参数 $\lambda$ 来实现正则化惩罚。将代价函数改为：</p>
+<script type="math/tex; mode=display">J(\theta)=\frac{1}{2m}\sum\limits_{i=1}^m [(h_{\theta}(x^{(i)})-y^{(i)})^2+\lambda\sum\limits_{i=1}^{n}\theta_j^2 ]\\ =\frac{1}{2m}[(X\theta-y)^T(X\theta-y)+\lambda\sum\limits_{j=1}^{n}\theta_j^2]</script><p>$\lambda$ 越大，正则化惩罚力度越大，就越能避免过拟合。当然也不能太大，不然参数的趋于0，最后的图像可能是一条直线。</p>
+<p>同时，梯度下降中也发生相应变化：</p>
+<script type="math/tex; mode=display">\begin{align}&Repeat\;until\;convergence\{ \\ & \quad \theta_0=\theta_0-\alpha\frac{1}{m}\sum\limits_{i=1}^m [(h_{\theta}(x^{(i)})-y^{(i)})x_0^{(i)}] \\ & \quad  \theta_j=\theta_j-\alpha\frac{1}{m}\sum\limits_{i=1}^m [(h_{\theta}(x^{(i)})-y^{(i)})x^{(i)} + \frac{\lambda}{m}\theta_j]\\ & \quad for \ j=1,2,..,n\\ &\}\end{align}</script><p>可进一步简化为：</p>
+<script type="math/tex; mode=display">\theta_j=\theta_j(1−\alpha\dfrac{\lambda}{m})−\alpha\dfrac{1}{m}\sum\limits_{i=1}^{m}[h_{\theta}(x^{(i)})−y^{(i)}]x^{(i)}_j</script><p>可以看出，正则化线性回归的梯度下降算法的变化在于，每次都在原有算法更新规则的基础上令 $\theta$ 值减少了一个额外的值，也就是梯度下降中每次更新 $\theta$ 的同时也会减小 $\theta$ 值。</p>
+<p>若用正规方程，则同样可以求解，方法如下：</p>
+<script type="math/tex; mode=display">\theta= (X^TX+\lambda \begin{bmatrix}0&...&...&0\\0&1&...&0\\...&...&...&...\\0&0&...&1\end{bmatrix})^{-1}X^Ty</script><h3 id="逻辑回归中的正则化"><a href="#逻辑回归中的正则化" class="headerlink" title="逻辑回归中的正则化"></a>逻辑回归中的正则化</h3><p>同样对于逻辑回归，我们也给代价函数增加一个正则化的表达式，得到代价函数：</p>
+<script type="math/tex; mode=display">J(\theta)=\frac{1}{m}\sum\limits_{i=1}^m [-y^{(i)}log(h_{\theta}(x))-(1-y^{(i)})log(1-h_{\theta}(x))]+\frac{\lambda}{2m}\sum\limits_{j=1}^{n}\theta_j^2</script><p>同样得出梯度下降算法为：</p>
+<script type="math/tex; mode=display">\begin{align}&Repeat\;until\;convergence\{ \\ & \quad \theta_0=\theta_0-\alpha\frac{1}{m}\sum\limits_{i=1}^m [(h_{\theta}(x^{(i)})-y^{(i)})x_0^{(i)}] \\ & \quad  \theta_j=\theta_j-\alpha\frac{1}{m}\sum\limits_{i=1}^m [(h_{\theta}(x^{(i)})-y^{(i)})x^{(i)} + \frac{\lambda}{m}\theta_j]\\ & \quad for \ j=1,2,..,n\\ &\}\end{align}</script><p>注意，$\theta_0$ 是不参与其中的任何一个正则化的。</p>
+<h1 id="线性回归与逻辑回归的区别"><a href="#线性回归与逻辑回归的区别" class="headerlink" title="线性回归与逻辑回归的区别"></a>线性回归与逻辑回归的区别</h1><p>线性回归与逻辑回归都是一种广义线性模型(generalized linear model)。线性回归假设因变量 y 服从高斯分布，而逻辑回归假设因变量 y 服从伯努利分布。 线性回归是回归任务，逻辑回归是分类任务。</p>
+<p>逻辑回归与线性回归虽然代价函数求导后看起来形式一样，但是二者的假设函数 $h_{\theta}(x)$ 是不同的。</p>
+<ul>
+<li>线性回归：$h_{\theta}(x)=\theta^{T}x$</li>
+<li>逻辑回归：$h_{\theta}(x)=g(\theta^{T}x)$ ，其中$g(z)$为 $Sigmoid$ 函数</li>
+</ul>
+</div><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="mailto:undefined">sherlockyang</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="http://example.com/2020/08/31/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E5%9F%BA%E7%A1%80(%E4%B8%80)%E7%BA%BF%E6%80%A7%E5%9B%9E%E5%BD%92%E4%B8%8E%E9%80%BB%E8%BE%91%E5%9B%9E%E5%BD%92/">http://example.com/2020/08/31/机器学习基础(一)线性回归与逻辑回归/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="http://example.com" target="_blank">sherlockyang's blog</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E7%BA%BF%E6%80%A7%E5%9B%9E%E5%BD%92/">线性回归</a><a class="post-meta__tags" href="/tags/%E9%80%BB%E8%BE%91%E5%9B%9E%E5%BD%92/">逻辑回归</a></div><div class="post_share"><div class="social-share" data-image="/img/avatar.jpg" data-sites="twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/social-share.js/dist/css/share.min.css"><script src="https://cdn.jsdelivr.net/npm/social-share.js/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/2020/08/31/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E5%9F%BA%E7%A1%80(%E4%BA%8C)%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%E5%9F%BA%E7%A1%80/"><img class="prev-cover" src="/null" onerror="onerror=null;src='/img/404.jpg'"><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">机器学习基础(二)神经网络基础</div></div></a></div><div class="next-post pull-right"><a href="/2019/10/11/Node-js%E5%8E%8B%E7%BC%A9%E5%9B%BE%E7%89%87%E7%9A%84%E5%9D%91/"><img class="next-cover" src="/null" onerror="onerror=null;src='/img/404.jpg'"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">Node.js压缩图片的坑</div></div></a></div></nav><hr/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="lv-container" data-id="city" data-uid="MTAyMC80MDQxMS8xNjkzOA=="></div></div></div></div></article></main><footer id="footer" data-type="color"><div id="footer-wrap"><div class="copyright">&copy;2018 - 2020 By sherlockyang</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div><div class="footer_custom_text">一花一剑一壶酒，不负光阴不负卿</div></div></footer></div><section id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog"></i></button><a id="to_comment" href="#post-comment" title="直达评论"><i class="fas fa-comments"></i></a><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></section><div><script src="https://cdn.jsdelivr.net/npm/jquery@latest/dist/jquery.min.js"></script><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/medium-zoom/dist/medium-zoom.min.js"></script><div class="js-pjax"><script>if (!window.MathJax) {
+  window.MathJax = {
+    loader: {
+      source: {
+        '[tex]/amsCd': '[tex]/amscd'
+      }
+    },
+    tex: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"]],
+      tags: 'ams'
+    },
+    options: {
+      renderActions: {
+        findScript: [10, doc => {
+          for (const node of document.querySelectorAll('script[type^="math/tex"]')) {
+            const display = !!node.type.match(/; *mode=display/)
+            const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display)
+            const text = document.createTextNode('')
+            node.parentNode.replaceChild(text, node)
+            math.start = {node: text, delim: '', n: 0}
+            math.end = {node: text, delim: '', n: 0}
+            doc.math.push(math)
+          }
+        }, ''],
+        addClass: [200,() => {
+          document.querySelectorAll('mjx-container:not([display=\'true\']').forEach( node => {
+            const target = node.parentNode
+            if (!target.classList.contains('has-jax')) {
+              target.classList.add('mathjax-overflow')
+            }
+          })
+        }, '', false]
+      }
+    }
+  }
+  
+  var script = document.createElement('script')
+  script.src = 'https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js'
+  script.id = 'MathJax-script'
+  script.async = true
+  document.head.appendChild(script)
+} else {
+  MathJax.startup.document.state(0)
+  MathJax.texReset()
+  MathJax.typeset()
+}</script><script>if (document.getElementsByClassName('mermaid').length) {
+  if (window.mermaidJsLoad) mermaid.init()
+  else {
+    $.getScript('https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js', function () {
+      window.mermaidJsLoad = true
+      mermaid.initialize({
+        theme: 'default',
+      })
+      false && mermaid.init()
+    })
+  }
+}</script><script>function loadLivere () {
+  if (typeof LivereTower === 'object') {
+    window.LivereTower.init()
+  }
+  else {
+    (function(d, s) {
+        var j, e = d.getElementsByTagName(s)[0];
+        if (typeof LivereTower === 'function') { return; }
+        j = d.createElement(s);
+        j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+        j.async = true;
+        e.parentNode.insertBefore(j, e);
+    })(document, 'script');
+  }
+}
+
+if ('Livere' === 'Livere' || !false) {
+  if (false) btf.loadComment(document.getElementById('lv-container'), loadLivere)
+  else loadLivere()
+}
+else {
+  function loadOtherComment () {
+    loadLivere()
+  }
+}</script><script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></div></body></html>
