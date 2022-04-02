@@ -8,6 +8,6 @@
 
 ## 博客地址
 
-<https://sherlock-y.com/>
+<https://sherlockhsy.github.io/>
 
 欢迎大佬们访问！！
